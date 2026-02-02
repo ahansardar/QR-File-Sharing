@@ -7,16 +7,16 @@ import os
 import qrcode
 import datetime
 
-# Create a blueprint for routes
+
 bp = Blueprint('main', __name__)
 
-# Helper function to check file age
+
 def file_age_in_days(filepath):
     file_creation_time = os.path.getctime(filepath)
     current_time = datetime.datetime.now().timestamp()
-    return (current_time - file_creation_time) / 86400  # Convert seconds to days
+    return (current_time - file_creation_time) / 86400  
 
-# Cleanup function to delete old files
+
 def cleanup_files():
     upload_folder = current_app.config['UPLOAD_FOLDER']
     for filename in os.listdir(upload_folder):
@@ -25,12 +25,12 @@ def cleanup_files():
             os.remove(file_path)
             print(f"Deleted: {file_path}")
 
-# Schedule cleanup every day
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(cleanup_files, IntervalTrigger(days=1))
 scheduler.start()
 
-# Flask Routes
+
 @bp.route('/')
 def index():
     return render_template('index.html')
@@ -47,7 +47,7 @@ def upload_file():
         upload_path = os.path.join(upload_folder, filename)
         file.save(upload_path)
 
-        # Generate QR code for the download link
+        
         download_link = f"http://{request.host}/download/{filename}"
         qr = qrcode.make(download_link)
         qr_filename = f"{filename}_qr.png"
@@ -79,17 +79,17 @@ def manual_cleanup():
 def delete_file(filename):
     filename = unquote(filename)
     try:
-        # Path to the file you want to delete
+        
         upload_folder = current_app.config['UPLOAD_FOLDER']
         file_path = os.path.join(upload_folder, filename)
         
         print(f"Attempting to delete file: {file_path}")
 
         if os.path.exists(file_path):
-            os.remove(file_path)  # Delete the file from the server
+            os.remove(file_path)  
             print(f"File deleted: {file_path}")
             
-            # Optionally, delete the corresponding QR code if stored as a separate file
+            
             qr_code_path = os.path.join(upload_folder, f"{filename}_qr.png")
             if os.path.exists(qr_code_path):
                 os.remove(qr_code_path)
@@ -104,6 +104,7 @@ def delete_file(filename):
         return jsonify({"error": str(e)}), 500
 
 
-# Ensure scheduler shuts down properly on exit
+
 import atexit
 atexit.register(lambda: scheduler.shutdown())
+
